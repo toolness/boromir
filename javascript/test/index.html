@@ -13,6 +13,22 @@
 <script>
 module("grammar");
 
+test("utils.makePronounDict()", function() {
+  var makePronounDict = Grammar.utils.makePronounDict;
+  deepEqual(makePronounDict("neuter"), {
+    "himself": "itself",
+    "his": "its",
+    "him": "it",
+    "he": "it"
+  });
+  deepEqual(makePronounDict("neuter", "u_"), {
+    "u_himself": "itself",
+    "u_his": "its",
+    "u_him": "it",
+    "u_he": "it"
+  });
+});
+
 test("utils.applyDict()", function() {
   var applyDict = Grammar.utils.applyDict;
   equal(applyDict("%(hi)s dog", {hi: "cat"}), "cat dog");
