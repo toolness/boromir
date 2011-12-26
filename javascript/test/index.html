@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Boromir Unit Tests</title>
+<link rel="stylesheet" href="qunit.css">
+<script src="qunit.js"></script>
+<script src="../grammar.js"></script>
+<h1 id="qunit-header">Boromir Unit Tests</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture"></div>
+<script>
+module("grammar");
+
+test("utils.parseString()", function() {
+  var parseString = Grammar.utils.parseString;
+  equal(parseString("dogs [is|are] cool", true), "dogs are cool");
+  equal(parseString("a dog bite[s]", false), "a dog bites");
+  equal(parseString("dogs bite[s]", true), "dogs bite");
+  equal(parseString("dogs <is|are> cool", null, true), "dogs are cool");
+  equal(parseString("a dog bite<s>", null, false), "a dog bites");
+  equal(parseString("dogs bite<s>", null, true), "dogs bite");
+});
+</script>
