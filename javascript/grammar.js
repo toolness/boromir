@@ -1,5 +1,10 @@
 var Grammar = (function() {
   var utils = {
+    applyDict: function(string, dict) {
+      return string.replace(/%\(([a-zA-Z0-9_]+)\)s/g, function(str, term) {
+        return dict[term].toString();
+      });
+    },
     parseString: function(string, isSquarePlural, isAnglePlural) {
       var SQUARES = /\[(.*?)(\|(.+))?\]/g,
           ANGLES  = /\<(.*?)(\|(.+))?\>/g;

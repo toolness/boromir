@@ -13,6 +13,13 @@
 <script>
 module("grammar");
 
+test("utils.applyDict()", function() {
+  var applyDict = Grammar.utils.applyDict;
+  equal(applyDict("%(hi)s dog", {hi: "cat"}), "cat dog");
+  equal(applyDict("%(hi)s dog %(bye)s", {hi: "cat", bye: "bear"}),
+                  "cat dog bear");
+});
+
 test("utils.parseString()", function() {
   var parseString = Grammar.utils.parseString;
   equal(parseString("dogs [is|are] cool", true), "dogs are cool");
