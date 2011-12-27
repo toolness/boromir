@@ -24,17 +24,17 @@ test("View", function() {
   };
   var view = new Grammar.View();
   var dogView = new Grammar.View(dog);
-  var string = "%(name)s poke[s] %(o_name_pos)s soul.";
+  var string = "%(name)s poke[s] %(o_name_pos)s soul with %(his)s paw.";
 
   equal(view.parseString(string, view.makeGrammarDict(dog, cat)),
-        "the dog pokes the cat's soul.");
+        "the dog pokes the cat's soul with his paw.");
   equal(view.parseString(string, view.makeGrammarDict(cat, dog)),
-        "the cat pokes the dog's soul.");
+        "the cat pokes the dog's soul with her paw.");
 
   equal(dogView.parseString(string, dogView.makeGrammarDict(dog, cat)),
-        "you poke the cat's soul.");
+        "you poke the cat's soul with your paw.");
   equal(dogView.parseString(string, dogView.makeGrammarDict(cat, dog)),
-        "the cat pokes your soul.");
+        "the cat pokes your soul with her paw.");
 });
 
 test("utils.extend()", function() {
