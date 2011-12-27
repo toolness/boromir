@@ -69,7 +69,7 @@ var Grammar = (function() {
     View: function View(viewer) {
       var self = {
         makeGrammarDict: function(subject, object) {
-          function makePosessive(name) {
+          function posessive(name) {
             return name + "'s";
           }
 
@@ -84,8 +84,8 @@ var Grammar = (function() {
             } else {
               utils.extend(dict, utils.makePronounDict(target.gender,
                                                        prefix));
-              dict[prefix + 'name'] = target.name;
-              dict[prefix + 'name_pos'] = makePosessive(target.name);
+              dict[prefix + 'name'] = target.definiteName;
+              dict[prefix + 'name_pos'] = posessive(target.definiteName);
             }
           }
 

@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="qunit.css">
 <script src="qunit.js"></script>
 <script src="../grammar.js"></script>
+<script src="../combat.js"></script>
 <h1 id="qunit-header">Boromir Unit Tests</h1>
 <h2 id="qunit-banner"></h2>
 <div id="qunit-testrunner-toolbar"></div>
@@ -15,11 +16,11 @@ module("grammar");
 
 test("View", function() {
   var dog = {
-    name: "the dog",
+    definiteName: "the dog",
     gender: "male"
   };
   var cat = {
-    name: "the cat",
+    definiteName: "the cat",
     gender: "female"
   };
   var view = new Grammar.View();
@@ -75,5 +76,39 @@ test("utils.parseString()", function() {
   equal(parseString("dogs <is|are> cool", null, true), "dogs are cool");
   equal(parseString("a dog bite<s>", null, false), "a dog bites");
   equal(parseString("dogs bite<s>", null, true), "dogs bite");
+});
+
+module("combat");
+
+test("utils", function() {
+  equal(Combat.utils.dieRoll(1, 1), 1);
+  equal(Combat.utils.dieRoll(1, 1, 1), 2);
+  equal(Combat.utils.dieRoll("1d1"), 1);
+  equal(Combat.utils.dieRoll("1d1+1"), 2);
+  equal(Combat.utils.randomChoice(['foo']), 'foo');
+  deepEqual(Combat.utils.parseDieString('1d8'), [1, 8, 0]);
+  deepEqual(Combat.utils.parseDieString('2d8+1'), [2, 8, 1]);
+});
+
+test("Weapon", function() {
+  var wearer = {
+    strengthMod: function() { return 1; }
+  };
+  var weapon = Combat.Weapon({
+    name: "toothpick",
+    isUnique: false,
+    critRange: 3,
+    critMultiplier: 2,
+    words: [],
+    damage: "1d1+1",
+    wearer: wearer,
+  });
+  equal(weapon.name, "toothpick");
+  equal(weapon.indefiniteName, "a toothpick");
+  equal(weapon.definiteName, "the toothpick");
+  ok(weapon.isAttackRollCritical(17));
+  ok(!weapon.isAttackRollCritical(16));
+  ok(weapon.damageRoll(10), 3);
+  ok(weapon.damageRoll(20), 6);
 });
 </script>
