@@ -13,6 +13,37 @@
 <script>
 module("grammar");
 
+test("View", function() {
+  var dog = {
+    name: "the dog",
+    gender: "male"
+  };
+  var cat = {
+    name: "the cat",
+    gender: "female"
+  };
+  var view = new Grammar.View();
+  var dogView = new Grammar.View(dog);
+  var string = "%(name)s poke[s] %(o_name_pos)s soul.";
+
+  equal(view.parseString(string, view.makeGrammarDict(dog, cat)),
+        "the dog pokes the cat's soul.");
+  equal(view.parseString(string, view.makeGrammarDict(cat, dog)),
+        "the cat pokes the dog's soul.");
+
+  equal(dogView.parseString(string, dogView.makeGrammarDict(dog, cat)),
+        "you poke the cat's soul.");
+  equal(dogView.parseString(string, dogView.makeGrammarDict(cat, dog)),
+        "the cat pokes your soul.");
+});
+
+test("utils.extend()", function() {
+  var extend = Grammar.utils.extend;
+  deepEqual(extend({a: 1, b: 2}, {c: 3}), {
+    a: 1, b: 2, c: 3
+  });
+});
+
 test("utils.makePronounDict()", function() {
   var makePronounDict = Grammar.utils.makePronounDict;
   deepEqual(makePronounDict("neuter"), {
