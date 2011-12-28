@@ -48,8 +48,8 @@ var Grammar = (function() {
       });
     },
     parseString: function(string, isSquarePlural, isAnglePlural) {
-      var SQUARES = /\[(.*?)(\|(.+))?\]/g,
-          ANGLES  = /\<(.*?)(\|(.+))?\>/g;
+      var SQUARES = /\[(.*?)(\|(.+?))?\]/g,
+          ANGLES  = /\<(.*?)(\|(.+?))?\>/g;
 
       function replaceBrackets(string, regexp, isPlural) {
         return string.replace(regexp, function(str, singular, plural) {
