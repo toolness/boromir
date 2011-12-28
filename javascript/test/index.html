@@ -92,7 +92,7 @@ test("utils", function() {
 
 test("Weapon", function() {
   var wearer = {
-    strengthMod: function() { return 1; }
+    mod: function(name) { return 1; }
   };
   var weapon = Combat.Weapon({
     name: "toothpick",
@@ -106,9 +106,132 @@ test("Weapon", function() {
   equal(weapon.name, "toothpick");
   equal(weapon.indefiniteName, "a toothpick");
   equal(weapon.definiteName, "the toothpick");
+  equal(weapon.gender, "neuter");
   ok(weapon.isAttackRollCritical(17));
   ok(!weapon.isAttackRollCritical(16));
   ok(weapon.damageRoll(10), 3);
   ok(weapon.damageRoll(20), 6);
 });
+
+(function() {
+  var cat = Combat.Creature({
+    name: "cat",
+    gender: "male",
+    str: 18,
+    dex: 18,
+    con: 18,
+    level: 6,
+    hp: 15,
+    parts: {
+      heavy: ["cat-belly"],
+      fatal: ["cat-face"]
+    }
+  });
+  var dog = Combat.Creature({
+    name: "dog",
+    gender: "male",
+    str: 15,
+    dex: 15,
+    con: 15,
+    level: 1,
+    hp: 25,
+    parts: {
+      heavy: ["dog-belly"],
+      fatal: ["dog-face"]
+    },
+    stumbles: [
+      ["%(o_name)s stumbles..."],
+      ["%(o_name)s blunders about..."]
+    ]
+  });
+  var paw = {
+    name: "paw",
+    damage: "1d1+1",
+    isUnique: false,
+    critRange: 3,
+    critMultiplier: 2,
+    words: {
+      light: ["lightly poke[s]"],
+      medium: ["poke[s]"],
+      heavy: ["seriously poke[s] %(his)s %(weapon)s into"]
+    }
+  };
+  cat.equipWeapon(Combat.Weapon(paw));
+  dog.equipWeapon(Combat.Weapon(paw));
+  var log = [];
+  var output = {
+    emit: function(category, msg) {
+      log.push([category, msg]);
+    }
+  };
+  var view = Grammar.View();
+  var narr = Combat.Narrator(view, output);
+
+  test("Narrator", function() {
+    cat.fullyHeal();
+    dog.fullyHeal();
+
+    log = [];
+    narr.miss(cat, dog);
+    deepEqual(log, [["miss", "the cat misses the dog!"]]);
+
+    log = [];
+    narr.hit(cat, dog, 1, 15, 1);
+    deepEqual(log, [
+      ["hit", "the cat lightly pokes the dog for 1 damage!"]
+    ]);
+
+    log = [];
+    narr.hit(cat, dog, 20, 20, 1);
+    deepEqual(log, [
+      ["stumble", "the dog stumbles..."],
+      ["hit", "the cat seriously pokes his paw into " +
+              "the dog's dog-belly for 20 damage!"]
+    ]);
+
+    log = [];
+    narr.hit(cat, dog, 30, 20, 1);
+    deepEqual(log, [
+      ["stumble", "the dog stumbles..."],
+      ["hit", "the cat seriously pokes his paw into " +
+              "the dog's dog-face for 30 damage!"]
+    ]);
+
+    log = [];
+    narr.hit(cat, dog, 30, 20, 2);
+    deepEqual(log, [
+      ["stumble", "the dog blunders about..."],
+      ["hit", "the cat seriously pokes his paw into " +
+              "the dog's dog-face for 30 damage!"]
+    ]);
+  });
+  
+  test("MeleeAttack", function() {
+    var nextRolls = [];
+    var attack = Combat.MeleeAttack(narr, function fakeRoll() {
+      return nextRolls.pop();
+    });
+    var armor = {
+      name: "fur",
+      armorBonus: 1
+    };
+    dog.equipArmor(Combat.Armor(armor));
+    cat.equipArmor(Combat.Armor(armor));
+    
+    log = [];
+    nextRolls = [20, 1];
+    attack.executeTurn(cat, dog);
+    deepEqual(log, [
+      ["miss", "the cat misses the dog!"],
+      ["stumble", "the dog blunders about..."],
+      ["hit", "the cat pokes the dog for 12 damage!"]
+    ]);
+
+    dog.loseHp(50); // Kill it.
+    log = [];
+    nextRolls = [20, 1];
+    attack.executeTurn(cat, dog);
+    deepEqual(log, [], "nothing happens when defender is already dead");
+  });
+})();
 </script>

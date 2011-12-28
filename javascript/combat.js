@@ -8,6 +8,11 @@ var Combat = (function(Grammar) {
   ];
   
   var utils = {
+    abilityMod: function(score) {
+      if (score == 1)
+        return -5;
+      return ((score - 2) / 2) - 4;
+    },
     getRandomInt: function(min, max) {  
       return Math.floor(Math.random() * (max - min + 1)) + min;  
     },
@@ -40,6 +45,7 @@ var Combat = (function(Grammar) {
     var isUnique = options.isUnique;
     var self = {
       name: name,
+      gender: options.gender || "neuter",
       extend: function(more) {
         Grammar.utils.extend(self, more);
       }
@@ -86,7 +92,7 @@ var Combat = (function(Grammar) {
         if (self.isAttackRollCritical(attackRoll))
           numTimes = self.critMultiplier;
         for (var i = 0; i < numTimes; i++)
-          damage += utils.dieRoll(self.damage) + self.wearer.strengthMod();
+          damage += utils.dieRoll(self.damage) + self.wearer.mod('str');
         return damage;
       }
     });
@@ -94,8 +100,159 @@ var Combat = (function(Grammar) {
     return self;
   }
 
+  function Armor(options) {
+    var self = Equippable(options);
+    
+    self.extend({
+      armorBonus: options.armorBonus
+    });
+    
+    return self;
+  }
+  
+  function Creature(options) {
+    var self = Thing(options);
+    
+    self.extend({
+      level: options.level,
+      str: options.str,
+      con: options.con,
+      dex: options.dex,
+      maxBaseHp: options.hp,
+      parts: options.parts,
+      stumbles: options.stumbles,
+      equipWeapon: function(weapon) {
+        weapon.wearer = self;
+        self.weapon = weapon;
+      },
+      equipArmor: function(armor) {
+        armor.wearer = self;
+        self.armor = armor;
+      },
+      armorClass: function() {
+        return 10 + self.armor.armorBonus + self.mod('dex');
+      },
+      baseAttackBonus: function() {
+        return ATTACKS_PER_ROUND[self.level - 1];
+      },
+      mod: function(name) {
+        if (name.length != 3 || !(name in self))
+          throw new Error("invalid attribute name: " + name);
+        return utils.abilityMod(self[name]);
+      },
+      maxHp: function() {
+        return self.maxBaseHp + (self.mod('con') * self.level);
+      },
+      fullyHeal: function() {
+        self.hp = self.maxHp();
+      },
+      loseHp: function(amount) {
+        self.hp -= amount;
+        if (self.hp < 0)
+          self.hp = 0;
+      }
+    });
+
+    self.fullyHeal();
+    return self;
+  }
+  
+  function Narrator(view, output) {    
+    var self = {
+      hit: function(attacker, defender, damage, attackRoll, roundNumber) {
+        var weapon = attacker.weapon;
+        var percent = damage / defender.hp;
+        var part = null;
+        var phrase;
+        var stumbleDesc;
+        var dict = view.makeGrammarDict(attacker, defender);
+
+        dict.weapon = attacker.weapon.name;
+        dict.o_weapon = defender.weapon.name;
+
+        if (percent < 0.15) {
+          phrase = utils.randomChoice(weapon.words.light);
+        } else if (percent < 0.5) {
+          phrase = utils.randomChoice(weapon.words.medium);
+        } else {
+          phrase = utils.randomChoice(weapon.words.heavy);
+          if (percent < 1.0) {
+            part = utils.randomChoice(defender.parts.heavy);
+          } else {
+            part = utils.randomChoice(defender.parts.fatal);
+          }
+        }
+        
+        if (attacker.weapon.isAttackRollCritical(attackRoll) ||
+            percent >= 0.8) {
+          if (roundNumber == 1) {
+            stumbleDesc = utils.randomChoice(defender.stumbles[0]);
+          } else {
+            stumbleDesc = utils.randomChoice(defender.stumbles[1]);
+          }
+          stumbleDesc = view.parseString(stumbleDesc, dict);
+          output.emit("stumble", stumbleDesc);
+        }
+        
+        if (part) {
+          phrase = "%(name)s " + phrase + " %(o_name_pos)s " + part;
+        } else {
+          phrase = "%(name)s " + phrase + " %(o_name)s";
+        }
+        
+        phrase += " for " + damage + " damage!";
+        phrase = view.parseString(phrase, dict);
+        output.emit("hit", phrase);
+      },
+      miss: function(attacker, defender) {
+        var dict = view.makeGrammarDict(attacker, defender);
+        var phrase = "%(name)s misses %(o_name)s!";
+        phrase = view.parseString(phrase, dict);
+        output.emit("miss", phrase);
+      }
+    };
+    
+    return self;
+  }
+  
+  function MeleeAttack(narrator, dieRoll) {
+    dieRoll = dieRoll || utils.dieRoll;
+
+    function oneAttack(attacker, defender, baseAttackBonus, roundNumber) {
+      var attackRoll = dieRoll('1d20');
+      var attack = attackRoll + baseAttackBonus + attacker.mod('str');
+      var defense = defender.armorClass();
+
+      if (defender.hp == 0)
+        return;
+
+      if (attack >= defense) {
+        var damage = attacker.weapon.damageRoll(attackRoll);
+        narrator.hit(attacker, defender, damage, attackRoll, roundNumber);
+        defender.loseHp(damage);
+      } else {
+        narrator.miss(attacker, defender);
+      }
+    }
+    
+    var self = {
+      executeTurn: function(attacker, defender) {
+        var attacks = attacker.baseAttackBonus();
+        oneAttack(attacker, defender, attacks[0], 1);
+        for (var i = 1; i < attacks.length; i++)
+          oneAttack(attacker, defender, attacks[i], 1 + i);
+      }
+    };
+    
+    return self;
+  }
+  
   return {
     utils: utils,
-    Weapon: Weapon
+    Weapon: Weapon,
+    Armor: Armor,
+    Creature: Creature,
+    Narrator: Narrator,
+    MeleeAttack: MeleeAttack
   };
 })(Grammar);
