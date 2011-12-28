@@ -4,11 +4,15 @@
 <title>Boromir Death Simulator</title>
 <style>
 body {
+  position: relative;
   background: #111111;
   color: #f0f0f0;
   font-family: Monaco, "Lucida Console", Futura, monospace;
   font-size: small;
   overflow: hidden;
+  -moz-transition: top 0.25s;
+  -webkit-transition: top 0.25s;
+  -o-transition: top 0.25s;
 }
 
 p {
@@ -67,6 +71,19 @@ p.combat.stumble {
 <script src="combat.js"></script>
 <script src="boromir.js"></script>
 <script>
+function scrollToBottom() {
+  var ODD_EXTRA_SPACE = 16;
+  var windowHeight = window.innerHeight ||
+                     document.documentElement.offsetHeight;
+  var docHeight = document.body.clientHeight;
+  if (windowHeight < docHeight) {
+    var surplus = docHeight - windowHeight + ODD_EXTRA_SPACE;
+    document.body.style.top = "-" +  surplus + "px";
+  }
+}
+
+onresize = scrollToBottom;
+
 function Output(hero) {
   var queue = [];
 
@@ -82,7 +99,7 @@ function Output(hero) {
     setTimeout(function() {
       p.setAttribute("class", baseClass + " transition");
     }, 1);
-    window.scrollTo(0, document.body.clientHeight);
+    scrollToBottom();
   }
   
   function processNextCommand() {
