@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Boromir Death Simulator</title>
+<style>
+body {
+  background: black;
+  color: white;
+  font-family: Monaco, "Lucida Console", Futura, monospace;
+  font-size: small;
+  overflow: hidden;
+}
+
+p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;  
+}
+
+p.combat {
+  opacity: 0.0;
+  -moz-transition: opacity 0.25s;
+  -webkit-transition: opacity 0.25s;
+  -o-transition: opacity 0.25s;
+}
+
+p.combat.transition {
+  opacity: 1.0;
+}
+
+p.combat.status + p.combat.hero,
+p.combat.status + p.combat.villain,
+p.combat.hero + p.combat.villain,
+p.combat.villain + p.combat.hero {
+  padding-top: 1em;
+}
+
+p.combat.status {
+  padding-top: 1em;
+  white-space: pre;
+}
+
+p.combat.status:before {
+  content: '(';
+}
+
+p.combat.status:after {
+  content: ')';
+}
+
+p.combat.hit, p.combat.miss, p.combat.stumble {
+  padding-left: 2em;
+}
+
+p.combat.death {
+  padding-bottom: 1em;
+}
+
+p.combat.stumble {
+  font-style: italic;
+}
+</style>
+<p>Boromir Death Simulator</p>
+<p>Version 0.1</p>
+<p>&nbsp;</p>
+<script src="grammar.js"></script>
+<script src="combat.js"></script>
+<script src="boromir.js"></script>
+<script>
+function Output(hero) {
+  var queue = [];
+
+  function showMessage(message) {
+    var p = document.createElement("p");
+    var baseClass = "combat " + message.category;
+    
+    if (message.attacker)
+      baseClass += " " + message.attacker;
+    p.setAttribute("class", baseClass);
+    p.appendChild(document.createTextNode(message.text));
+    document.body.appendChild(p);
+    setTimeout(function() {
+      p.setAttribute("class", baseClass + " transition");
+    }, 1);
+    window.scrollTo(0, document.body.clientHeight);
+  }
+  
+  function processNextCommand() {
+    if (queue.length) {
+      var command = queue.pop();
+      if (command.type == "pause") {
+        setTimeout(processNextCommand, command.seconds * 1000);
+      } else {
+        showMessage(command);
+        processNextCommand();
+      }
+    }
+  }
+
+  var self = {
+    playback: function() {
+      processNextCommand();
+    },
+    emit: function(category, msg, info) {
+      var attacker = null;
+      if (info && info.attacker) {
+        if (info.attacker === hero)
+          attacker = "hero";
+        else
+          attacker = "villain";
+      }
+      queue.splice(0, 0, {
+        type: "message",
+        category: category,
+        text: msg[0].toUpperCase() + msg.slice(1),
+        attacker: attacker
+      });
+    },
+    pause: function(seconds) {
+      queue.splice(0, 0, {type: "pause", seconds: seconds});
+    }
+  };
+  
+  return self;
+}
+
+onload = function() {
+  var boromir = Combat.Creature({
+    name: "Boromir",
+    gender: "male",
+    isUnique: true,
+    level: 15,
+    str: 17,
+    dex: 17,
+    con: 13,
+    hp: 104,
+    parts: Boromir.WORDS.humanoidParts,
+    stumbles: Boromir.WORDS.stumbles
+  });
+
+  boromir.equipWeapon(Boromir.utils.makeWeapon("longsword"));
+  boromir.equipArmor(Boromir.utils.makeArmor("chain shirt"));
+
+  function makeOrc() {
+    var orc = Combat.Creature({
+      name: "orc",
+      gender: "male",
+      isUnique: false,
+      level: 4,
+      str: 15,
+      dex: 12,
+      con: 13,
+      hp: 30,
+      parts: Boromir.WORDS.humanoidParts,
+      stumbles: Boromir.WORDS.stumbles
+    });
+
+    orc.equipWeapon(Boromir.utils.makeWeapon("random"));
+    orc.equipArmor(Boromir.utils.makeArmor("cloth"));
+    return orc;
+  }
+  
+  var output = Output(boromir);
+  var view = Grammar.View();
+  var narrator = Combat.Narrator(view, output);
+  var attack = Combat.MeleeAttack(narrator);
+
+  function combat(p1, p2) {
+    var m = [[p1, p2], [p2, p1]];
+    if (p2.check('dex') >= p1.check('dex'))
+      m.reverse();
+    
+    output.emit("begin", p1.definiteName + " and " + p2.definiteName +
+                " close in and begin to fight!");
+    output.pause(2);
+
+    function statusStr(creature) {
+      return creature.name + ": " + creature.hp + "/" + creature.maxHp() +
+             " HP";
+    }
+
+    while (1) {
+      output.emit("status", statusStr(p2) + "  " + statusStr(p1));
+      for (var i = 0; i < m.length; i++) {
+        var attacker = m[i][0];
+        var defender = m[i][1];
+        if (attacker.hp)
+          attack.executeTurn(attacker, defender);
+        if (defender.hp == 0) {
+          output.emit("death", defender.definiteName + " has been killed!");
+          return;
+        }
+        output.pause(3);
+      }
+    }
+  }
+
+  for (var count = 0; boromir.hp > 0; count++) {
+    var orc = makeOrc();
+    output.emit("intro", orc.indefiniteName + " wielding " +
+                orc.weapon.indefiniteName + " approaches!");
+    combat(orc, boromir);
+    output.pause(3);
+  }
+
+  output.emit("conclusion", "After killing " + (count-1) + " " +
+              orc.name + "s, " + boromir.name + " died.");
+
+  output.playback();
+};
+</script>
