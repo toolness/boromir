@@ -227,7 +227,8 @@ test("Weapon", function() {
       ["hit", "the cat pokes the dog for 12 damage!"]
     ]);
 
-    dog.loseHp(50); // Kill it.
+    dog.loseHp(50000); // Kill it.
+    equal(dog.hp, 0);
     log = [];
     nextRolls = [20, 1];
     attack.executeTurn(cat, dog);
