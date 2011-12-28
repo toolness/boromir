@@ -226,7 +226,10 @@ var Combat = (function(Grammar) {
             stumbleDesc = utils.randomChoice(defender.stumbles[1]);
           }
           stumbleDesc = view.parseString(stumbleDesc, dict);
-          output.emit("stumble", stumbleDesc);
+          output.emit("stumble", stumbleDesc, {
+            attacker: attacker,
+            defender: defender
+          });
         }
         
         if (part) {
@@ -237,13 +240,20 @@ var Combat = (function(Grammar) {
         
         phrase += " for " + damage + " damage!";
         phrase = view.parseString(phrase, dict);
-        output.emit("hit", phrase);
+        output.emit("hit", phrase, {
+          attacker: attacker,
+          defender: defender,
+          damage: damage
+        });
       },
       miss: function(attacker, defender) {
         var dict = view.makeGrammarDict(attacker, defender);
         var phrase = "%(name)s misses %(o_name)s!";
         phrase = view.parseString(phrase, dict);
-        output.emit("miss", phrase);
+        output.emit("miss", phrase, {
+          attacker: attacker,
+          defender: defender
+        });
       }
     };
     
