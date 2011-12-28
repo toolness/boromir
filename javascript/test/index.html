@@ -194,6 +194,10 @@ function narratorTest(name, cb) {
   });
 }
 
+narratorTest("Creature", function(cat) {
+  equal(typeof(cat.check('dex')), "number");
+});
+
 narratorTest("Narrator", function(cat, dog, output, narr) {
   narr.miss(cat, dog);
   deepEqual(output.log, [["miss", "the cat misses the dog!"]]);

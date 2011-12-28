@@ -172,6 +172,9 @@ var Combat = (function(Grammar) {
           throw new Error("invalid attribute name: " + name);
         return utils.abilityMod(self[name]);
       },
+      check: function(name) {
+        return utils.dieRoll('1d20') + self.mod(name);
+      },
       maxHp: function() {
         return self.maxBaseHp + (self.mod('con') * self.level);
       },
