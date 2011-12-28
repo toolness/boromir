@@ -129,66 +129,66 @@ test("Weapon", function() {
 });
 
 function narratorTest(name, cb) {
-  var cat = Combat.Creature({
-    name: "cat",
-    gender: "male",
-    isUnique: false,
-    str: 18,
-    dex: 18,
-    con: 18,
-    level: 6,
-    hp: 15,
-    parts: {
-      heavy: ["cat-belly"],
-      fatal: ["cat-face"]
-    },
-    stumbles: [
-      ["%(o_name)s stumbles..."],
-      ["%(o_name)s blunders about..."]
-    ]
-  });
-  var dog = Combat.Creature({
-    name: "dog",
-    gender: "male",
-    isUnique: false,
-    str: 15,
-    dex: 15,
-    con: 15,
-    level: 1,
-    hp: 25,
-    parts: {
-      heavy: ["dog-belly"],
-      fatal: ["dog-face"]
-    },
-    stumbles: [
-      ["%(o_name)s stumbles..."],
-      ["%(o_name)s blunders about..."]
-    ]
-  });
-  var paw = {
-    name: "paw",
-    damage: "1d1+1",
-    isUnique: false,
-    critRange: 3,
-    critMultiplier: 2,
-    words: {
-      light: ["lightly poke[s]"],
-      medium: ["poke[s]"],
-      heavy: ["seriously poke[s] %(his)s %(weapon)s into"]
-    }
-  };
-  cat.equipWeapon(Combat.Weapon(paw));
-  dog.equipWeapon(Combat.Weapon(paw));
-  var log = [];
-  var output = {
-    emit: function(category, msg) {
-      log.push([category, msg]);
-    }
-  };
-  var view = Grammar.View();
-  var narr = Combat.Narrator(view, output);
-
   test(name, function() {
+    var cat = Combat.Creature({
+      name: "cat",
+      gender: "male",
+      isUnique: false,
+      str: 18,
+      dex: 18,
+      con: 18,
+      level: 6,
+      hp: 15,
+      parts: {
+        heavy: ["cat-belly"],
+        fatal: ["cat-face"]
+      },
+      stumbles: [
+        ["%(o_name)s stumbles..."],
+        ["%(o_name)s blunders about..."]
+      ]
+    });
+    var dog = Combat.Creature({
+      name: "dog",
+      gender: "male",
+      isUnique: false,
+      str: 15,
+      dex: 15,
+      con: 15,
+      level: 1,
+      hp: 25,
+      parts: {
+        heavy: ["dog-belly"],
+        fatal: ["dog-face"]
+      },
+      stumbles: [
+        ["%(o_name)s stumbles..."],
+        ["%(o_name)s blunders about..."]
+      ]
+    });
+    var paw = {
+      name: "paw",
+      damage: "1d1+1",
+      isUnique: false,
+      critRange: 3,
+      critMultiplier: 2,
+      words: {
+        light: ["lightly poke[s]"],
+        medium: ["poke[s]"],
+        heavy: ["seriously poke[s] %(his)s %(weapon)s into"]
+      }
+    };
+    cat.equipWeapon(Combat.Weapon(paw));
+    dog.equipWeapon(Combat.Weapon(paw));
+    var log = [];
+    var output = {
+      emit: function(category, msg) {
+        log.push([category, msg]);
+      }
+    };
+    var view = Grammar.View();
+    var narr = Combat.Narrator(view, output);
+
     cb(cat, dog, log, narr);
   });
 }
