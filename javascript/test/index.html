@@ -81,6 +81,13 @@ test("utils.parseString()", function() {
 
 module("combat");
 
+function raisesMessage(block, expected) {
+  raises(block, function(e) {
+    equal(e.message, expected);
+    return (e.message == expected);
+  });
+}
+
 test("utils", function() {
   equal(Combat.utils.dieRoll(1, 1), 1);
   equal(Combat.utils.dieRoll(1, 1, 1), 2);
@@ -89,6 +96,13 @@ test("utils", function() {
   equal(Combat.utils.randomChoice(['foo']), 'foo');
   deepEqual(Combat.utils.parseDieString('1d8'), [1, 8, 0]);
   deepEqual(Combat.utils.parseDieString('2d8+1'), [2, 8, 1]);
+
+  Combat.utils.typeCheck({hi: 1}, {hi: "number"});
+  ok(true, "typeCheck on valid input doesn't throw");
+
+  raisesMessage(function() {
+    Combat.utils.typeCheck({}, {hi: "number"});
+  }, "expected option 'hi' to be type number, not undefined");
 });
 
 test("Weapon", function() {
@@ -118,6 +132,7 @@ function narratorTest(name, cb) {
   var cat = Combat.Creature({
     name: "cat",
     gender: "male",
+    isUnique: false,
     str: 18,
     dex: 18,
     con: 18,
@@ -126,11 +141,16 @@ function narratorTest(name, cb) {
     parts: {
       heavy: ["cat-belly"],
       fatal: ["cat-face"]
-    }
+    },
+    stumbles: [
+      ["%(o_name)s stumbles..."],
+      ["%(o_name)s blunders about..."]
+    ]
   });
   var dog = Combat.Creature({
     name: "dog",
     gender: "male",
+    isUnique: false,
     str: 15,
     dex: 15,
     con: 15,
@@ -215,7 +235,8 @@ narratorTest("MeleeAttack", function(cat, dog, log, narr) {
   });
   var armor = {
     name: "fur",
-    armorBonus: 1
+    armorBonus: 1,
+    isUnique: false
   };
   dog.equipArmor(Combat.Armor(armor));
   cat.equipArmor(Combat.Armor(armor));

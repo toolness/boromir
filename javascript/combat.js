@@ -8,6 +8,12 @@ var Combat = (function(Grammar) {
   ];
   
   var utils = {
+    typeCheck: function(obj, typeMap) {
+      for (var name in typeMap)
+        if (typeof(obj[name]) != typeMap[name])
+          throw new Error("expected option '" + name + "' to be type " +
+                          typeMap[name] + ", not " + obj[name]);
+    },
     abilityMod: function(score) {
       if (score == 1)
         return -5;
@@ -41,6 +47,11 @@ var Combat = (function(Grammar) {
   };
   
   function Thing(options) {
+    utils.typeCheck(options, {
+      name: "string",
+      isUnique: "boolean"
+    });
+    
     var name = options.name;
     var isUnique = options.isUnique;
     var self = {
@@ -67,7 +78,7 @@ var Combat = (function(Grammar) {
   
   function Equippable(options) {
     var self = Thing(options);
-    
+
     self.extend({
       wearer: options.wearer
     });
@@ -77,6 +88,13 @@ var Combat = (function(Grammar) {
 
   function Weapon(options) {
     var self = Equippable(options);
+
+    utils.typeCheck(options, {
+      damage: "string",
+      words: "object",
+      critRange: "number",
+      critMultiplier: "number"
+    });
 
     self.extend({
       damage: options.damage,
@@ -103,6 +121,10 @@ var Combat = (function(Grammar) {
   function Armor(options) {
     var self = Equippable(options);
     
+    utils.typeCheck(options, {
+      armorBonus: "number"
+    });
+    
     self.extend({
       armorBonus: options.armorBonus
     });
@@ -112,7 +134,17 @@ var Combat = (function(Grammar) {
   
   function Creature(options) {
     var self = Thing(options);
-    
+
+    utils.typeCheck(options, {
+      level: "number",
+      str: "number",
+      con: "number",
+      dex: "number",
+      hp: "number",
+      parts: "object",
+      stumbles: "object"
+    });
+
     self.extend({
       level: options.level,
       str: options.str,
