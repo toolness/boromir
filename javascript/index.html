@@ -84,6 +84,9 @@ function scrollToBottom() {
 
 onresize = scrollToBottom;
 
+// Prevent touch-based scrolling.
+ontouchstart = function(event) { event.preventDefault(); };
+
 function Output(hero) {
   var queue = [];
 
