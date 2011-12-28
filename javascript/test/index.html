@@ -96,6 +96,7 @@ test("utils", function() {
   equal(Combat.utils.randomChoice(['foo']), 'foo');
   deepEqual(Combat.utils.parseDieString('1d8'), [1, 8, 0]);
   deepEqual(Combat.utils.parseDieString('2d8+1'), [2, 8, 1]);
+  equal(Combat.utils.abilityMod(15), 2);
 
   Combat.utils.typeCheck({hi: 1}, {hi: "number"});
   ok(true, "typeCheck on valid input doesn't throw");
