@@ -191,6 +191,8 @@ function narratorTest(name, cb) {
       emit: function(category, msg) {
         this.log.push([category, msg]);
       },
+      pause: function(seconds) {
+      },
       log: []
     };
     var view = Grammar.View();

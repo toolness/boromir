@@ -194,6 +194,7 @@ var Combat = (function(Grammar) {
   
   function Narrator(view, output) {    
     var self = {
+      output: output,
       hit: function(attacker, defender, damage, attackRoll, roundNumber) {
         var weapon = attacker.weapon;
         var percent = damage / defender.hp;
@@ -230,6 +231,7 @@ var Combat = (function(Grammar) {
             attacker: attacker,
             defender: defender
           });
+          output.pause(1);
         }
         
         if (part) {
@@ -284,8 +286,10 @@ var Combat = (function(Grammar) {
       executeTurn: function(attacker, defender) {
         var attacks = attacker.baseAttackBonus();
         oneAttack(attacker, defender, attacks[0], 1);
-        for (var i = 1; i < attacks.length; i++)
+        for (var i = 1; i < attacks.length; i++) {
+          narrator.output.pause(2);
           oneAttack(attacker, defender, attacks[i], 1 + i);
+        }
       }
     };
     
