@@ -113,7 +113,7 @@ test("Weapon", function() {
   ok(weapon.damageRoll(20), 6);
 });
 
-(function() {
+function narratorTest(name, cb) {
   var cat = Combat.Creature({
     name: "cat",
     gender: "male",
@@ -167,72 +167,72 @@ test("Weapon", function() {
   var view = Grammar.View();
   var narr = Combat.Narrator(view, output);
 
-  test("Narrator", function() {
-    cat.fullyHeal();
-    dog.fullyHeal();
-
-    log = [];
-    narr.miss(cat, dog);
-    deepEqual(log, [["miss", "the cat misses the dog!"]]);
-
-    log = [];
-    narr.hit(cat, dog, 1, 15, 1);
-    deepEqual(log, [
-      ["hit", "the cat lightly pokes the dog for 1 damage!"]
-    ]);
-
-    log = [];
-    narr.hit(cat, dog, 20, 20, 1);
-    deepEqual(log, [
-      ["stumble", "the dog stumbles..."],
-      ["hit", "the cat seriously pokes his paw into " +
-              "the dog's dog-belly for 20 damage!"]
-    ]);
-
-    log = [];
-    narr.hit(cat, dog, 30, 20, 1);
-    deepEqual(log, [
-      ["stumble", "the dog stumbles..."],
-      ["hit", "the cat seriously pokes his paw into " +
-              "the dog's dog-face for 30 damage!"]
-    ]);
-
-    log = [];
-    narr.hit(cat, dog, 30, 20, 2);
-    deepEqual(log, [
-      ["stumble", "the dog blunders about..."],
-      ["hit", "the cat seriously pokes his paw into " +
-              "the dog's dog-face for 30 damage!"]
-    ]);
+  test(name, function() {
+    cb(cat, dog, log, narr);
   });
+}
+
+narratorTest("Narrator", function(cat, dog, log, narr) {
+  narr.miss(cat, dog);
+  deepEqual(log, [["miss", "the cat misses the dog!"]]);
+
+  log.splice(0);
+  narr.hit(cat, dog, 1, 15, 1);
+  deepEqual(log, [
+    ["hit", "the cat lightly pokes the dog for 1 damage!"]
+  ]);
+
+  log.splice(0);
+  narr.hit(cat, dog, 20, 20, 1);
+  deepEqual(log, [
+    ["stumble", "the dog stumbles..."],
+    ["hit", "the cat seriously pokes his paw into " +
+            "the dog's dog-belly for 20 damage!"]
+  ]);
+
+  log.splice(0);
+  narr.hit(cat, dog, 30, 20, 1);
+  deepEqual(log, [
+    ["stumble", "the dog stumbles..."],
+    ["hit", "the cat seriously pokes his paw into " +
+            "the dog's dog-face for 30 damage!"]
+  ]);
+
+  log.splice(0);
+  narr.hit(cat, dog, 30, 20, 2);
+  deepEqual(log, [
+    ["stumble", "the dog blunders about..."],
+    ["hit", "the cat seriously pokes his paw into " +
+            "the dog's dog-face for 30 damage!"]
+  ]);
+});
+
+narratorTest("MeleeAttack", function(cat, dog, log, narr) {
+  var nextRolls = [];
+  var attack = Combat.MeleeAttack(narr, function fakeRoll() {
+    return nextRolls.pop();
+  });
+  var armor = {
+    name: "fur",
+    armorBonus: 1
+  };
+  dog.equipArmor(Combat.Armor(armor));
+  cat.equipArmor(Combat.Armor(armor));
   
-  test("MeleeAttack", function() {
-    var nextRolls = [];
-    var attack = Combat.MeleeAttack(narr, function fakeRoll() {
-      return nextRolls.pop();
-    });
-    var armor = {
-      name: "fur",
-      armorBonus: 1
-    };
-    dog.equipArmor(Combat.Armor(armor));
-    cat.equipArmor(Combat.Armor(armor));
-    
-    log = [];
-    nextRolls = [20, 1];
-    attack.executeTurn(cat, dog);
-    deepEqual(log, [
-      ["miss", "the cat misses the dog!"],
-      ["stumble", "the dog blunders about..."],
-      ["hit", "the cat pokes the dog for 12 damage!"]
-    ]);
+  log.splice(0);
+  nextRolls = [20, 1];
+  attack.executeTurn(cat, dog);
+  deepEqual(log, [
+    ["miss", "the cat misses the dog!"],
+    ["stumble", "the dog blunders about..."],
+    ["hit", "the cat pokes the dog for 12 damage!"]
+  ]);
 
-    dog.loseHp(50000); // Kill it.
-    equal(dog.hp, 0);
-    log = [];
-    nextRolls = [20, 1];
-    attack.executeTurn(cat, dog);
-    deepEqual(log, [], "nothing happens when defender is already dead");
-  });
-})();
+  log.splice(0);
+  nextRolls = [20, 1];
+  dog.loseHp(50000);
+  equal(dog.hp, 0);
+  attack.executeTurn(cat, dog);
+  deepEqual(log, [], "nothing happens when defender is already dead");
+});
 </script>
