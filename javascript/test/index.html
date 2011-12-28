@@ -77,6 +77,8 @@ test("utils.parseString()", function() {
   equal(parseString("dogs <is|are> cool", null, true), "dogs are cool");
   equal(parseString("a dog bite<s>", null, false), "a dog bites");
   equal(parseString("dogs bite<s>", null, true), "dogs bite");
+  equal(parseString("dogs bark[s] and bite[s]", true),
+                    "dogs bark and bite");
   equal(parseString("dogs fl[ies|y] and bite[s]", true),
                     "dogs fly and bite");
   equal(parseString("dogs fl<ies|y> and bite<s>", null, true),
