@@ -430,6 +430,8 @@ def combat(p1, p2, view):
                 MeleeAttack(i[0], i[1], view).execute()
             except CreatureDeath, cd:
                 print "%s has been killed!" % i[1].get_def_name()
+                if (random.random() < 0.7) and (i[0].get_hp() > (i[0].get_hp()/2)
+                    print "%s blows the Horn of Gondor! BWOOM! BWOOM! BWOOM!" % i[0].get_def_name()
                 return
             print
             time.sleep(3)
